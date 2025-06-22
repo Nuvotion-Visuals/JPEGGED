@@ -24,6 +24,8 @@
 
         .sidebar {
             width: 350px;
+            min-width: 350px;
+            flex-shrink: 0;
             background: #111;
             border-right: 1px solid #333;
             display: flex;
@@ -170,6 +172,23 @@
             color: #fff;
             border-radius: 3px;
             font-size: 12px;
+        }
+
+        .randomize-section button {
+            padding: 6px 12px;
+            margin: 2px;
+            background: #333;
+            border: 1px solid #555;
+            color: #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .randomize-section button:hover {
+            background: #444;
+            border-color: #666;
         }
 
         .quant-table {
@@ -534,32 +553,58 @@
             const ctx = canvas.getContext('2d');
             const container = document.getElementById('imageContainer');
             
-            // Get available space (container size minus padding)
+            // Function to actually scale and display the image
+            function doScaling() {
+                // Get available space (container size minus padding)
+                const containerRect = container.getBoundingClientRect();
+                let availableWidth = containerRect.width - 40; // 20px padding on each side
+                let availableHeight = containerRect.height - 40; // 20px padding on each side
+                
+                // If container dimensions are not available yet, use fallback dimensions
+                if (availableWidth <= 0 || availableHeight <= 0) {
+                    // Use viewport dimensions as fallback
+                    availableWidth = Math.max(400, window.innerWidth - 400); // Account for sidebar
+                    availableHeight = Math.max(300, window.innerHeight - 100);
+                }
+                
+                // Calculate scale to fit the image while maintaining aspect ratio
+                const scaleX = availableWidth / decoded.width;
+                const scaleY = availableHeight / decoded.height;
+                const scale = Math.min(scaleX, scaleY, 1); // Use smaller scale to ensure it fits, but never scale up
+                
+                // Ensure minimum scale to prevent tiny images
+                const minScale = Math.min(0.1, Math.min(availableWidth / decoded.width, availableHeight / decoded.height));
+                const finalScale = Math.max(scale, minScale);
+                
+                // Calculate final display dimensions
+                const displayWidth = Math.max(1, Math.floor(decoded.width * finalScale));
+                const displayHeight = Math.max(1, Math.floor(decoded.height * finalScale));
+                
+                // Set canvas size to match original image data
+                canvas.width = decoded.width;
+                canvas.height = decoded.height;
+                
+                // Set canvas display size to scaled dimensions
+                canvas.style.width = displayWidth + 'px';
+                canvas.style.height = displayHeight + 'px';
+                
+                // Draw the image data
+                const imageData = ctx.createImageData(decoded.width, decoded.height);
+                imageData.data.set(decoded.data);
+                ctx.putImageData(imageData, 0, 0);
+            }
+            
+            // Try to scale immediately
+            doScaling();
+            
+            // If the container dimensions are still not available, try again after layout
             const containerRect = container.getBoundingClientRect();
-            const availableWidth = containerRect.width - 40; // 20px padding on each side
-            const availableHeight = containerRect.height - 40; // 20px padding on each side
-            
-            // Calculate scale to fit the image while maintaining aspect ratio
-            const scaleX = availableWidth / decoded.width;
-            const scaleY = availableHeight / decoded.height;
-            const scale = Math.min(scaleX, scaleY); // Use smaller scale to ensure it fits
-            
-            // Calculate final display dimensions
-            const displayWidth = Math.floor(decoded.width * scale);
-            const displayHeight = Math.floor(decoded.height * scale);
-            
-            // Set canvas size to match original image data
-            canvas.width = decoded.width;
-            canvas.height = decoded.height;
-            
-            // Set canvas display size to scaled dimensions
-            canvas.style.width = displayWidth + 'px';
-            canvas.style.height = displayHeight + 'px';
-            
-            // Draw the image data
-            const imageData = ctx.createImageData(decoded.width, decoded.height);
-            imageData.data.set(decoded.data);
-            ctx.putImageData(imageData, 0, 0);
+            if (containerRect.width <= 0 || containerRect.height <= 0) {
+                // Use requestAnimationFrame to wait for layout to complete
+                requestAnimationFrame(() => {
+                    doScaling();
+                });
+            }
         }
 
         function reDecodeWithTables(customTables) {
