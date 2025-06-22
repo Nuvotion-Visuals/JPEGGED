@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JPEGGED</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: #111;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .main-area {
+            flex: 1;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .header h1 {
+            color: #fff;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .file-upload {
+            margin-bottom: 20px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: block;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: #222;
+            border: 2px dashed #555;
+            border-radius: 8px;
+            color: #ccc;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-button:hover {
+            border-color: #888;
+            background: #333;
+        }
+
+        .file-info {
+            padding: 15px;
+            background: #111;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        .tabs {
+            border-bottom: 1px solid #333;
+            margin-bottom: 20px;
+        }
+
+        .tab-buttons {
+            display: flex;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px;
+            background: #222;
+            border: none;
+            color: #ccc;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            background: #333;
+        }
+
+        .tab-button.active {
+            background: #333;
+            color: #fff;
+            border-bottom-color: #666;
+        }
+
+        .tab-content {
+            padding: 0 20px 20px;
+        }
+
+        .quant-controls {
+            margin-bottom: 15px;
+        }
+
+        .quant-controls button {
+            padding: 6px 12px;
+            margin: 2px;
+            background: #333;
+            border: 1px solid #555;
+            color: #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .quant-controls button:hover {
+            background: #444;
+            border-color: #666;
+        }
+
+        .randomize-section {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .randomize-section label {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .randomize-input {
+            width: 50px;
+            padding: 4px 6px;
+            background: #222;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .quant-table {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 2px;
+            margin-bottom: 20px;
+        }
+
+        .quant-cell {
+            width: 32px;
+            height: 32px;
+            background: #222;
+            border: 1px solid #444;
+            color: #fff;
+            text-align: center;
+            font-size: 11px;
+            border-radius: 3px;
+            outline: none;
+            transition: all 0.2s ease;
+            cursor: ns-resize;
+            user-select: none;
+        }
+
+        .quant-cell:focus {
+            border-color: #666;
+            background: #333;
+        }
+
+        .quant-cell:hover {
+            border-color: #555;
+        }
+
+        .quant-cell.dragging {
+            background: #444;
+            border-color: #777;
+        }
+
+        .image-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #canvas {
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .no-image {
+            color: #666;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .error {
+            color: #ff6b6b;
+            background: #2d1b1b;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 20px;
+            font-size: 13px;
+            border-left: 3px solid #ff6b6b;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .table-name {
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="header">
+                <h1>JPEGGED</h1>
+                <div class="file-upload">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="fileInput" class="file-input" accept=".jpg,.jpeg" />
+                        <div class="file-input-button">
+                            📁 Choose JPEG File
+                        </div>
+                    </div>
+                </div>
+                <div id="fileInfo" class="file-info hidden"></div>
+            </div>
+
+            <div id="error" class="error hidden"></div>
+
+            <div id="quantSection" class="hidden">
+                <div class="tabs">
+                    <div class="tab-buttons" id="tabButtons"></div>
+                </div>
+
+                <div class="tab-content">
+                    <div id="tabContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-area">
+            <div id="noImage" class="no-image">
+                Upload a JPEG file to begin
+            </div>
+            <div id="imageContainer" class="image-container hidden">
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="decoder.js"></script>
+    <script>
+        let originalJpegData = null;
+        let originalQuantTables = null;
+        let currentQuantTables = null; // Store current modified tables
+        let currentFile = null;
+        let activeTab = 0;
+        let isDragging = false;
+        let dragElement = null;
+        let dragStartY = 0;
+        let dragStartValue = 0;
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            currentFile = file;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    originalJpegData = new Uint8Array(e.target.result);
+                    const decoded = decode(originalJpegData, { useTArray: true });
+                    
+                    // Store original quantization tables
+                    originalQuantTables = JSON.parse(JSON.stringify(decoded.quantizationTables));
+                    
+                    // Initialize current tables with original values (or preserve existing if changing images)
+                    if (!currentQuantTables) {
+                        currentQuantTables = JSON.parse(JSON.stringify(decoded.quantizationTables));
+                    }
+                    
+                    displayResults(decoded, file);
+                    hideError();
+                    
+                } catch (err) {
+                    showError('Error: ' + err.message);
+                    console.error(err);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+        
+        function displayResults(decoded, file) {
+            // Show image with proper scaling
+            displayImageWithScaling(decoded);
+            
+            // Show file info
+            const fileSize = (originalJpegData.length / 1024).toFixed(1);
+            document.getElementById('fileInfo').innerHTML = `
+                <strong>${file.name}</strong><br>
+                ${decoded.width} × ${decoded.height}<br>
+                ${fileSize} KB
+            `;
+            document.getElementById('fileInfo').classList.remove('hidden');
+            
+            // Show quantization tables
+            setupQuantTabs(decoded);
+            
+            // Show image container, hide no-image message
+            document.getElementById('noImage').classList.add('hidden');
+            document.getElementById('imageContainer').classList.remove('hidden');
+            document.getElementById('quantSection').classList.remove('hidden');
+        }
+        
+        function setupQuantTabs(decoded) {
+            const tabButtons = document.getElementById('tabButtons');
+            const tabContent = document.getElementById('tabContent');
+            
+            if (!decoded.quantizationTables) {
+                showError('No quantization tables found');
+                return;
+            }
+            
+            // Create tab buttons
+            let buttonsHtml = '';
+            Object.entries(decoded.quantizationTables).forEach(([index, table]) => {
+                const name = index == 0 ? 'Luma' : 'Chroma';
+                buttonsHtml += `<button class="tab-button ${index == activeTab ? 'active' : ''}" 
+                                       onclick="switchTab(${index})">${name}</button>`;
+            });
+            tabButtons.innerHTML = buttonsHtml;
+            
+            // Show active tab content
+            showTabContent(currentQuantTables[activeTab], activeTab);
+        }
+        
+        function switchTab(tabIndex) {
+            // Save current tab's values before switching
+            if (currentQuantTables && activeTab !== null) {
+                saveCurrentTabValues();
+            }
+            
+            activeTab = tabIndex;
+            
+            // Update button states
+            document.querySelectorAll('.tab-button').forEach((btn, i) => {
+                btn.classList.toggle('active', i == tabIndex);
+            });
+            
+            // Show content for this tab
+            if (currentQuantTables) {
+                showTabContent(currentQuantTables[tabIndex], tabIndex);
+            }
+        }
+
+        function saveCurrentTabValues() {
+            const inputs = document.querySelectorAll(`input[data-table="${activeTab}"]`);
+            if (inputs.length > 0 && currentQuantTables[activeTab]) {
+                inputs.forEach(input => {
+                    const cellIndex = parseInt(input.getAttribute('data-index'));
+                    currentQuantTables[activeTab][cellIndex] = parseInt(input.value);
+                });
+            }
+        }
+        
+        function showTabContent(table, tableIndex) {
+            const tabContent = document.getElementById('tabContent');
+            const tableName = tableIndex == 0 ? 'Luminance (Y)' : 'Chrominance (UV)';
+            
+            let html = `
+                <div class="table-name">Table ${tableIndex} - ${tableName}</div>
+                <div class="quant-controls">
+                    <button onclick="resetTable(${tableIndex})">Reset</button>
+                </div>
+                <div class="randomize-section">
+                    <label>Randomize:</label>
+                    <input type="number" class="randomize-input" id="randomizeCount-${tableIndex}" min="1" max="64" value="5">
+                    <button onclick="randomizeTable(${tableIndex})">Random</button>
+                    <label><input type="checkbox" id="resetBeforeRandom-${tableIndex}" checked> Reset first</label>
+                </div>
+                <div class="quant-table">
+            `;
+            
+            for (let i = 0; i < 64; i++) {
+                html += `<input type="number" class="quant-cell" 
+                         value="${table[i]}" 
+                         min="1" max="255" 
+                         data-table="${tableIndex}" 
+                         data-index="${i}"
+                         onchange="onQuantValueChange(${tableIndex}, ${i}, this.value)">`;
+            }
+            
+            html += '</div>';
+            tabContent.innerHTML = html;
+
+            // Add drag listeners to the new inputs
+            setupDragListeners();
+        }
+
+        function setupDragListeners() {
+            const cells = document.querySelectorAll('.quant-cell');
+            
+            cells.forEach(cell => {
+                // Mouse events
+                cell.addEventListener('mousedown', startDrag);
+                
+                // Touch events
+                cell.addEventListener('touchstart', startDrag, { passive: false });
+            });
+
+            // Global mouse/touch events
+            document.addEventListener('mousemove', handleDrag);
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchmove', handleDrag, { passive: false });
+            document.addEventListener('touchend', endDrag);
+        }
+
+        function startDrag(e) {
+            e.preventDefault();
+            isDragging = true;
+            dragElement = e.target;
+            dragStartValue = parseInt(dragElement.value);
+            
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            dragStartY = clientY;
+            
+            dragElement.classList.add('dragging');
+            document.body.style.cursor = 'ns-resize';
+        }
+
+        function handleDrag(e) {
+            if (!isDragging || !dragElement) return;
+            
+            e.preventDefault();
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const deltaY = dragStartY - clientY; // Inverted: up = positive
+            const sensitivity = 0.5; // Adjust sensitivity
+            const newValue = Math.max(1, Math.min(255, dragStartValue + Math.round(deltaY * sensitivity)));
+            
+            if (parseInt(dragElement.value) !== newValue) {
+                dragElement.value = newValue;
+                
+                // Trigger change event for real-time update
+                const tableIndex = parseInt(dragElement.getAttribute('data-table'));
+                const cellIndex = parseInt(dragElement.getAttribute('data-index'));
+                onQuantValueChange(tableIndex, cellIndex, newValue);
+            }
+        }
+
+        function endDrag(e) {
+            if (!isDragging) return;
+            
+            isDragging = false;
+            if (dragElement) {
+                dragElement.classList.remove('dragging');
+                dragElement = null;
+            }
+            document.body.style.cursor = '';
+        }
+        
+        function getCurrentQuantTable(tableIndex) {
+            // If we're asking for the currently active tab, get values from DOM
+            if (tableIndex == activeTab) {
+                const inputs = document.querySelectorAll(`input[data-table="${tableIndex}"]`);
+                if (inputs.length > 0) {
+                    inputs.forEach(input => {
+                        const cellIndex = parseInt(input.getAttribute('data-index'));
+                        currentQuantTables[tableIndex][cellIndex] = parseInt(input.value);
+                    });
+                }
+            }
+            return currentQuantTables[tableIndex];
+        }
+        
+        function getCurrentQuantTables() {
+            // Save current active tab values first
+            if (activeTab !== null) {
+                saveCurrentTabValues();
+            }
+            return currentQuantTables;
+        }
+        
+        function onQuantValueChange(tableIndex, cellIndex, newValue) {
+            // Update the stored value immediately
+            currentQuantTables[tableIndex][cellIndex] = parseInt(newValue);
+            
+            // Re-decode with all current tables
+            reDecodeWithTables(currentQuantTables);
+        }
+        
+        function displayImageWithScaling(decoded) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById('imageContainer');
+            
+            // Get available space (container size minus padding)
+            const containerRect = container.getBoundingClientRect();
+            const availableWidth = containerRect.width - 40; // 20px padding on each side
+            const availableHeight = containerRect.height - 40; // 20px padding on each side
+            
+            // Calculate scale to fit the image while maintaining aspect ratio
+            const scaleX = availableWidth / decoded.width;
+            const scaleY = availableHeight / decoded.height;
+            const scale = Math.min(scaleX, scaleY); // Use smaller scale to ensure it fits
+            
+            // Calculate final display dimensions
+            const displayWidth = Math.floor(decoded.width * scale);
+            const displayHeight = Math.floor(decoded.height * scale);
+            
+            // Set canvas size to match original image data
+            canvas.width = decoded.width;
+            canvas.height = decoded.height;
+            
+            // Set canvas display size to scaled dimensions
+            canvas.style.width = displayWidth + 'px';
+            canvas.style.height = displayHeight + 'px';
+            
+            // Draw the image data
+            const imageData = ctx.createImageData(decoded.width, decoded.height);
+            imageData.data.set(decoded.data);
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        function reDecodeWithTables(customTables) {
+            try {
+                const decoded = decode(originalJpegData, { 
+                    useTArray: true,
+                    customQuantizationTables: customTables
+                });
+                
+                displayImageWithScaling(decoded);
+                
+            } catch (err) {
+                showError('Error re-decoding: ' + err.message);
+                console.error(err);
+            }
+        }
+        
+        function resetTable(tableIndex) {
+            // Reset the stored table to original values
+            currentQuantTables[tableIndex] = JSON.parse(JSON.stringify(originalQuantTables[tableIndex]));
+            
+            // Update the DOM inputs if this is the active tab
+            if (tableIndex == activeTab) {
+                const inputs = document.querySelectorAll(`input[data-table="${tableIndex}"]`);
+                inputs.forEach((input, i) => {
+                    input.value = currentQuantTables[tableIndex][i];
+                });
+            }
+            
+            reDecodeWithTables(currentQuantTables);
+        }
+
+        function randomizeTable(tableIndex) {
+            const countInput = document.getElementById(`randomizeCount-${tableIndex}`);
+            const resetCheckbox = document.getElementById(`resetBeforeRandom-${tableIndex}`);
+            const count = Math.min(64, Math.max(1, parseInt(countInput.value) || 5));
+            
+            // Reset to original values first if checkbox is checked
+            if (resetCheckbox && resetCheckbox.checked) {
+                currentQuantTables[tableIndex] = JSON.parse(JSON.stringify(originalQuantTables[tableIndex]));
+            }
+            
+            // Get random indices
+            const indices = [];
+            for (let i = 0; i < 64; i++) indices.push(i);
+            
+            // Shuffle and take first 'count' elements
+            for (let i = indices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [indices[i], indices[j]] = [indices[j], indices[i]];
+            }
+            
+            const selectedIndices = indices.slice(0, count);
+            
+            // Randomize selected fields in stored table
+            selectedIndices.forEach(index => {
+                const randomValue = Math.floor(Math.random() * 255) + 1; // 1-255
+                currentQuantTables[tableIndex][index] = randomValue;
+            });
+            
+            // Update DOM inputs if this is the active tab
+            if (tableIndex == activeTab) {
+                const inputs = document.querySelectorAll(`input[data-table="${tableIndex}"]`);
+                // Update all inputs if we reset, otherwise just the randomized ones
+                if (resetCheckbox && resetCheckbox.checked) {
+                    inputs.forEach((input, i) => {
+                        input.value = currentQuantTables[tableIndex][i];
+                    });
+                } else {
+                    selectedIndices.forEach(index => {
+                        if (inputs[index]) {
+                            inputs[index].value = currentQuantTables[tableIndex][index];
+                        }
+                    });
+                }
+            }
+            
+            reDecodeWithTables(currentQuantTables);
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+        
+        function hideError() {
+            document.getElementById('error').classList.add('hidden');
+        }
+
+        // Handle window resize to re-scale image
+        window.addEventListener('resize', function() {
+            if (originalJpegData && currentQuantTables) {
+                // Re-scale the current image
+                reDecodeWithTables(currentQuantTables);
+            }
+        });
+    </script>
+</body>
+</html> 
