@@ -1,5 +1,7 @@
 # JPEGGED: Real-time JPEG Quantization Table Manipulation for Databending Art
 
+![jpegged](https://github.com/user-attachments/assets/1803d42f-d799-40ee-9756-0c3cdf749467)
+
 ## Overview
 
 JPEGGED is a browser-based tool for real-time manipulation of JPEG quantization tables, enabling the creation of databending art through controlled compression artifact generation. The application provides direct access to the quantization matrices that govern DCT coefficient compression, allowing artists to explore the aesthetic possibilities of algorithmic image degradation.
@@ -16,6 +18,8 @@ JPEG compression uses 8x8 quantization tables to reduce the precision of DCT (Di
 - **High frequency components** (bottom-right of table): Control fine details and texture
 - **Luminance table**: Affects brightness and contrast
 - **Chrominance table**: Affects color information
+
+![dct](https://github.com/user-attachments/assets/36607dbb-4b13-4847-808f-496f558f50f5)
 
 By modifying these values, artists can create controlled distortions ranging from subtle quality degradation to extreme visual artifacts.
 
@@ -121,4 +125,4 @@ jpegged/
 
 ## Future Development
 
-Potential enhancements include batch processing capabilities, preset quantization table libraries, export functionality for modified images, and integration with other JPEG metadata manipulation tools for expanded databending possibilities. 
+This form of datamoshing, as well as many other advanced databending and datamoshing will be incoporated into Nuvotion 3, a C++ desktop app for creating audio-reactive visuals. https://nuvotion.live
