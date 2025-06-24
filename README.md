@@ -6,6 +6,8 @@
 
 JPEGGED is a browser-based tool for real-time manipulation of JPEG quantization tables, enabling the creation of databending art through controlled compression artifact generation. The application provides direct access to the quantization matrices that govern DCT coefficient compression, allowing artists to explore the aesthetic possibilities of algorithmic image degradation.
 
+Try it here: https://jpegged.nuvotion.live
+
 ## Databending Approach
 
 Databending, the practice of manipulating digital data to create artistic effects, traditionally involves corrupting file formats or exploiting compression algorithms. This tool implements a surgical approach to databending by targeting the specific mathematical structures within JPEG compression that control image quality degradation.
